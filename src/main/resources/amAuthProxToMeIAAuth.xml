@@ -29,10 +29,10 @@
   <Schema
    serviceHierarchy="/DSAMEConfig/authentication/iPlanetAMAuthProxToMeIAAuthService"
    i18nFileName="amAuthProxToMeIAAuth" revisionNumber="10"
-   i18nKey="proxtomeia-service-description" resourceName="sample">
+   i18nKey="proxtomeia-service-description" resourceName="proxtome-ia">
    <Organization>
     <!-- Specify resourceName for a JSON-friendly property in the REST SMS -->
-    <AttributeSchema name="iplanet-am-auth-sampleauth-auth-level" resourceName="authLevel"
+    <AttributeSchema name="iplanet-am-auth-proxtomeia-auth-level" resourceName="authLevel"
      type="single" syntax="number_range" rangeStart="0" rangeEnd="2147483647"
      i18nKey="a500">
      <DefaultValues>
@@ -49,7 +49,7 @@
      and the nested SubSchema must have resourceName="USE-PARENT"
     -->
     <SubSchema name="serverconfig" inheritance="multiple" resourceName="USE-PARENT">
-     <AttributeSchema name="iplanet-am-auth-sampleauth-auth-level" resourceName="authLevel"
+     <AttributeSchema name="iplanet-am-auth-proxtomeia-auth-level" resourceName="authLevel"
       type="single" syntax="number_range" rangeStart="0" rangeEnd="2147483647"
       i18nKey="a500">
       <DefaultValues>

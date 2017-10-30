@@ -23,8 +23,10 @@
 
 package com.proxtome.ia.auth;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 import javax.security.auth.Subject;
@@ -40,6 +42,14 @@ import com.sun.identity.authentication.util.ISAuthConstants;
 import com.sun.identity.shared.datastruct.CollectionHelper;
 import com.sun.identity.shared.debug.Debug;
 
+import org.apache.http.HttpStatus;
+import org.apache.http.entity.ContentType;
+import org.apache.http.client.fluent.Request;
+import org.apache.http.client.ClientProtocolException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.JsonProcessingException;
 /**
  * SampleAuth authentication module example.
  *
@@ -68,7 +78,7 @@ public class ProxToMeIAAuth extends AMLoginModule {
     private Map<String, String> options;
     private ResourceBundle bundle;
     private Map<String, String> sharedState;
-    private String userID;
+    private String username;
 
     public ProxToMeIAAuth() {
         super();
@@ -119,16 +129,41 @@ public class ProxToMeIAAuth extends AMLoginModule {
                 String deviceID = deviceIDCb.getName();
                 String challenge = String.valueOf(challengeCb.getPassword());
                 String response = String.valueOf(responseCb.getPassword());
+                Map<String, String> payload = new HashMap<String, String>();
+                payload.put("p2m_user_id", userID);
+                payload.put("p2m_device_id", deviceID);
+                payload.put("challenge", challenge);
+                payload.put("response", response);
+                String jsonPayload = null;
+                int statusCode = 0;
+                try {
+                    jsonPayload = new ObjectMapper().writeValueAsString(payload);    
+                } catch (JsonProcessingException exc) {
+                    throw new InvalidPasswordException("serialization error");
+                }
+                try {
+                    statusCode = Request.Post("http://proxtome-ia.cloudapp.net/api/challenge")
+                                           .useExpectContinue()
+                                           .bodyString(jsonPayload, ContentType.APPLICATION_JSON)
+                                           .execute().returnResponse().getStatusLine().getStatusCode();
+                    // String result = Request.Post("http://proxtome-ia.cloudapp.net/api/challenge")
+                    //                        .useExpectContinue()
+                    //                        .bodyString(jsonPayload, ContentType.APPLICATION_JSON)
+                    //                        .execute().returnContent().asString();
+                    // Map<String, String> decodedResult = new HashMap<Stirng, String>();
+                    // decodedResult = new ObjectMapper().readValue(result, new TypeReference<HashMap>(){});
+                } catch (IOException exc) {
+                    throw new InvalidPasswordException("HTTP error");
+                }
 
-                
-                if (!userID.equals(deviceID) && challenge.equals(response)) {
+                if (!userID.equals(deviceID) && challenge.equals(response) && statusCode == 200) {
                     debug.message("ProxToMeIAAuth::process User '{}' " +
                             "authenticated with success.", userID);
                     return ISAuthConstants.LOGIN_SUCCEED;
                 }
 
                 throw new InvalidPasswordException("something is wrong",
-                        userId);
+                        userID);
 
             case STATE_ERROR:
                 return STATE_ERROR;
