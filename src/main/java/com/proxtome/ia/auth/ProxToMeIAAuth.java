@@ -43,9 +43,12 @@ import com.sun.identity.shared.datastruct.CollectionHelper;
 import com.sun.identity.shared.debug.Debug;
 
 import org.apache.http.HttpStatus;
-import org.apache.http.entity.ContentType;
-import org.apache.http.client.fluent.Request;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -74,6 +77,10 @@ public class ProxToMeIAAuth extends AMLoginModule {
     private final static int STATE_BEGIN = 1;
     private final static int STATE_AUTH = 2;
     private final static int STATE_ERROR = 3;
+
+    // Errors properties
+    private final static String ERROR_SERVER_DENIED = "proxtome-ia-error-server-denied";
+    
 
     private Map<String, String> options;
     private ResourceBundle bundle;
@@ -114,7 +121,7 @@ public class ProxToMeIAAuth extends AMLoginModule {
                 // No time wasted here - simply modify the UI and
                 // proceed to next state
                 if (this.username == null && this.sharedState != null) { 
-                    this.username = this.sharedState.get(getUserKey()); 
+                    this.username = this.sharedState.get(getUserKey());
                 }
                 substituteUIStrings();
                 return STATE_AUTH;
@@ -137,34 +144,29 @@ public class ProxToMeIAAuth extends AMLoginModule {
                 String jsonPayload = null;
                 int statusCode = 0;
                 try {
-                    jsonPayload = new ObjectMapper().writeValueAsString(payload);    
+                    jsonPayload = new ObjectMapper().writeValueAsString(payload);
                 } catch (JsonProcessingException exc) {
-                    throw new InvalidPasswordException("serialization error");
+                    throw new AuthLoginException("serialization error");
                 }
                 try {
-                    statusCode = Request.Post("http://proxtome-ia.cloudapp.net/api/challenge")
-                                           .useExpectContinue()
-                                           .bodyString(jsonPayload, ContentType.APPLICATION_JSON)
-                                           .execute().returnResponse().getStatusLine().getStatusCode();
-                    // String result = Request.Post("http://proxtome-ia.cloudapp.net/api/challenge")
-                    //                        .useExpectContinue()
-                    //                        .bodyString(jsonPayload, ContentType.APPLICATION_JSON)
-                    //                        .execute().returnContent().asString();
-                    // Map<String, String> decodedResult = new HashMap<Stirng, String>();
-                    // decodedResult = new ObjectMapper().readValue(result, new TypeReference<HashMap>(){});
+                    CloseableHttpClient client = HttpClients.createDefault();
+                    HttpPost request = new HttpPost ("http://proxtome-ia.cloudapp.net/api/challenge");
+                    request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+                    request.setEntity(new StringEntity(jsonPayload));
+                    statusCode = client.execute(request).getStatusLine().getStatusCode();
                 } catch (IOException exc) {
-                    throw new InvalidPasswordException("HTTP error");
-                }
-
-                if (!userID.equals(deviceID) && challenge.equals(response) && statusCode == 200) {
+                    debug.message("Error in Request");
+                    throw new AuthLoginException("server error");
+                } 
+                debug.message("REQUEST DONE. Status: " + String.valueOf(statusCode));
+                if (statusCode == 200) {
                     debug.message("ProxToMeIAAuth::process User '{}' " +
                             "authenticated with success.", userID);
                     return ISAuthConstants.LOGIN_SUCCEED;
+                } else {
+                    setErrorText(ERROR_SERVER_DENIED);
+                    return STATE_ERROR;
                 }
-
-                throw new InvalidPasswordException("something is wrong",
-                        userID);
-
             case STATE_ERROR:
                 return STATE_ERROR;
             default:
@@ -190,7 +192,7 @@ public class ProxToMeIAAuth extends AMLoginModule {
         // Get property from bundle
         String new_hdr = ssa + " " +
                 bundle.getString("proxtome-ia-auth-header");
-        substituteHeader(STATE_AUTH, new_hdr);
+        substituteHeader(STATE_AUTH, new_hdr + " : " + this.username);
 
         replaceCallback(STATE_AUTH, 0, new NameCallback(
                 bundle.getString("proxtome-ia-userid-prompt")));

@@ -26,7 +26,7 @@
 
 <ModuleProperties moduleName="ProxToMeIAAuth" version="1.0" >
     <Callbacks length="0" order="1" timeout="600" header="#NOT SHOWN#" />
-    <Callbacks length="4" order="2" timeout="600" header="#TO BE SUBSTITUTED#">
+    <Callbacks length="4" order="2" timeout="1000" header="#TO BE SUBSTITUTED#">
         <NameCallback isRequired="true">
             <Prompt>#USERID#</Prompt>
         </NameCallback>
