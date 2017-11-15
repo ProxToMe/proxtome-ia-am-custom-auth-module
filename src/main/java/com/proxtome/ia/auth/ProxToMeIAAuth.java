@@ -187,10 +187,10 @@ public class ProxToMeIAAuth extends AMLoginModule {
 
     private void substituteUIStrings() throws AuthLoginException {
         // Get service specific attribute configured in OpenAM
-        String ssa = CollectionHelper.getMapAttr(options, "specificAttribute");
+        // String ssa = CollectionHelper.getMapAttr(options, "specificAttribute");
 
         // Get property from bundle
-        String new_hdr = ssa + " " +
+        String new_hdr = //ssa + " " +
                 bundle.getString("proxtome-ia-auth-header");
         substituteHeader(STATE_AUTH, new_hdr + " : " + this.username);
 
