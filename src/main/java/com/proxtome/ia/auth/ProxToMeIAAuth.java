@@ -34,6 +34,7 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.login.LoginException;
+import javax.servlet.http.HttpServletRequest;
 
 import com.sun.identity.authentication.spi.AMLoginModule;
 import com.sun.identity.authentication.spi.AuthLoginException;
@@ -51,6 +52,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
 /**
@@ -78,8 +80,9 @@ public class ProxToMeIAAuth extends AMLoginModule {
     private final static int STATE_AUTH = 2;
     private final static int STATE_ERROR = 3;
 
-    // Errors properties
+    // Error properties
     private final static String ERROR_SERVER_DENIED = "proxtome-ia-error-server-denied";
+    private final static String ERROR_RESPONSE_NOT_MATCHING = "proxtome-ia-error-response-not-matching";
     
 
     private Map<String, String> options;
@@ -90,7 +93,6 @@ public class ProxToMeIAAuth extends AMLoginModule {
     public ProxToMeIAAuth() {
         super();
     }
-
 
     /**
      * This method stores service attributes and localized properties for later
@@ -160,6 +162,18 @@ public class ProxToMeIAAuth extends AMLoginModule {
                 } 
                 debug.message("REQUEST DONE. Status: " + String.valueOf(statusCode));
                 if (statusCode == 200) {
+                    HttpServletRequest servletRequest = this.getHttpServletRequest();
+                    String body = servletRequest.getParameter("jsonContent");
+                    try {
+                        JsonNode deviceIdNode = new ObjectMapper().readTree(body).get("deviceId");
+                        if (deviceIdNode == null || !deviceIdNode.textValue().equals(deviceID)) {
+                            setErrorText(ERROR_SERVER_DENIED);
+                            return STATE_ERROR;
+                        }    
+                    } catch (IOException exc) {
+                            setErrorText(ERROR_SERVER_DENIED);
+                            return STATE_ERROR;
+                    }
                     debug.message("ProxToMeIAAuth::process User '{}' " +
                             "authenticated with success.", userID);
                     return ISAuthConstants.LOGIN_SUCCEED;
