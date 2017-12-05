@@ -152,7 +152,7 @@ public class ProxToMeIAAuth extends AMLoginModule {
                 }
                 try {
                     CloseableHttpClient client = HttpClients.createDefault();
-                    HttpPost request = new HttpPost ("http://proxtome-ia.cloudapp.net/api/challenge");
+                    HttpPost request = new HttpPost ("http://proxtome-ia.cloudapp.net/api/response");
                     request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                     request.setEntity(new StringEntity(jsonPayload));
                     statusCode = client.execute(request).getStatusLine().getStatusCode();
