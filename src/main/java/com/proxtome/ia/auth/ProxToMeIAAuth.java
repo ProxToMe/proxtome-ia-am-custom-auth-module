@@ -21,6 +21,9 @@
  *
  */
 
+/**
+ * Portions Copyrighted 2017-2018 ProxToMe inc.
+ */
 package com.proxtome.ia.auth;
 
 import java.io.IOException;
@@ -43,28 +46,9 @@ import com.sun.identity.authentication.util.ISAuthConstants;
 import com.sun.identity.shared.datastruct.CollectionHelper;
 import com.sun.identity.shared.debug.Debug;
 
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.proxtome.ia.auth.ProxToMeIAHandler;
 /**
- * SampleAuth authentication module example.
- *
- * If you create your own module based on this example, you must modify all
- * occurrences of "SampleAuth" in addition to changing the name of the class.
- *
- * Please refer to OpenAM documentation for further information.
- *
- * Feel free to look at the code for authentication modules delivered with
- * OpenAM, as they implement this same API.
+ * ProxToMeIA authentication module.
  */
 public class ProxToMeIAAuth extends AMLoginModule {
 
@@ -82,7 +66,7 @@ public class ProxToMeIAAuth extends AMLoginModule {
 
     // Error properties
     private final static String ERROR_SERVER_DENIED = "proxtome-ia-error-server-denied";
-    private final static String ERROR_RESPONSE_NOT_MATCHING = "proxtome-ia-error-response-not-matching";
+    private final static String ERROR_SERVER_DOWN = "proxtome-ia-error-server-unreachable";
     
 
     private Map<String, String> options;
@@ -109,7 +93,7 @@ public class ProxToMeIAAuth extends AMLoginModule {
         this.options = options;
         this.sharedState = sharedState;
         this.bundle = amCache.getResBundle(amAuthProxToMeIAAuth, getLoginLocale());
-        this.username = null;
+        this.username = null
     }
 
     @Override
@@ -138,51 +122,30 @@ public class ProxToMeIAAuth extends AMLoginModule {
                 String deviceID = deviceIDCb.getName();
                 String challenge = String.valueOf(challengeCb.getPassword());
                 String response = String.valueOf(responseCb.getPassword());
-                Map<String, String> payload = new HashMap<String, String>();
-                payload.put("p2m_user_id", userID);
-                payload.put("p2m_device_id", deviceID);
-                payload.put("challenge", challenge);
-                payload.put("response", response);
-                String jsonPayload = null;
-                int statusCode = 0;
-                try {
-                    jsonPayload = new ObjectMapper().writeValueAsString(payload);
-                } catch (JsonProcessingException exc) {
-                    throw new AuthLoginException("serialization error");
+                // Retrieve the AM request body as String, to pass to the ProxToMeIAHandler instance.
+                HttpServletRequest servletRequest = this.getHttpServletRequest();
+                String body = servletRequest.getParameter("jsonContent");
+                // Delegate a ProxToMeIAHandler instance all the communication to the ProxToMe backend, 
+                // to leave the code clean here.
+                int proxtomeResult = new ProxToMeIAHandler().handleAuthorization(
+                    userID, deviceID, challenge, response, requestBody);
+                switch (proxtomeResult) {
+                    case ProxToMeIAHandler.PROXTOME_OK:
+                        return ISAuthConstants.LOGIN_SUCCEED;
+                    case ProxToMeIAHandler.PROXTOME_DENIED:
+                        setErrorText(ERROR_SERVER_DENIED);
+                        return STATE_ERROR;
+                    case ProxToMeIAHandler.PROXTOME_DOWN:
+                        setErrorText(ERROR_SERVER_DOWN);
+                        return STATE_ERROR;
+                    default:
+                        debug.message("Unrecognized result from ProxToMeIAHandler");
+                        return STATE_ERROR;
                 }
-                try {
-                    CloseableHttpClient client = HttpClients.createDefault();
-                    HttpPost request = new HttpPost ("http://proxtome-ia.cloudapp.net/api/response");
-                    request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-                    request.setEntity(new StringEntity(jsonPayload));
-                    statusCode = client.execute(request).getStatusLine().getStatusCode();
-                } catch (IOException exc) {
-                    debug.message("Error in Request");
-                    throw new AuthLoginException("server error");
-                } 
-                debug.message("REQUEST DONE. Status: " + String.valueOf(statusCode));
-                if (statusCode == 200) {
-                    HttpServletRequest servletRequest = this.getHttpServletRequest();
-                    String body = servletRequest.getParameter("jsonContent");
-                    try {
-                        JsonNode deviceIdNode = new ObjectMapper().readTree(body).get("deviceId");
-                        if (deviceIdNode == null || !deviceIdNode.textValue().equals(deviceID)) {
-                            setErrorText(ERROR_SERVER_DENIED);
-                            return STATE_ERROR;
-                        }    
-                    } catch (IOException exc) {
-                            setErrorText(ERROR_SERVER_DENIED);
-                            return STATE_ERROR;
-                    }
-                    debug.message("ProxToMeIAAuth::process User '{}' " +
-                            "authenticated with success.", userID);
-                    return ISAuthConstants.LOGIN_SUCCEED;
-                } else {
-                    setErrorText(ERROR_SERVER_DENIED);
-                    return STATE_ERROR;
-                }
+
             case STATE_ERROR:
                 return STATE_ERROR;
+
             default:
                 throw new AuthLoginException("invalid state");
         }
@@ -200,12 +163,9 @@ public class ProxToMeIAAuth extends AMLoginModule {
     }
 
     private void substituteUIStrings() throws AuthLoginException {
-        // Get service specific attribute configured in OpenAM
-        // String ssa = CollectionHelper.getMapAttr(options, "specificAttribute");
-
+        
         // Get property from bundle
-        String new_hdr = //ssa + " " +
-                bundle.getString("proxtome-ia-auth-header");
+        String new_hdr = bundle.getString("proxtome-ia-auth-header");
         substituteHeader(STATE_AUTH, new_hdr + " : " + this.username);
 
         replaceCallback(STATE_AUTH, 0, new NameCallback(

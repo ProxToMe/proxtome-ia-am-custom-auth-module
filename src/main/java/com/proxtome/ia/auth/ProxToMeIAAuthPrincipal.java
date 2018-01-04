@@ -21,13 +21,17 @@
  *
  */
 
+/**
+ * Portions Copyrighted 2017-2018 ProxToMe inc.
+ */
+
 package com.proxtome.ia.auth;
 
 import java.io.Serializable;
 import java.security.Principal;
 
 /**
- * SampleAuthPrincipal represents the user entity.
+ * ProxToMeIAAuthPrincipal represents the user entity.
  */
 public class ProxToMeIAAuthPrincipal implements Principal, Serializable {
     private final static String COLON = " : ";
@@ -44,9 +48,9 @@ public class ProxToMeIAAuthPrincipal implements Principal, Serializable {
     }
 
     /**
-     * Return the LDAP username for this <code>SampleAuthPrincipal</code>.
+     * Return the LDAP username for this <code>ProxToMeIAAuthPrincipal</code>.
      *
-     * @return the LDAP username for this <code>SampleAuthPrincipal</code>
+     * @return the LDAP username for this <code>ProxToMeIAAuthPrincipal</code>
      */
     @Override
     public String getName() {
@@ -54,7 +58,7 @@ public class ProxToMeIAAuthPrincipal implements Principal, Serializable {
     }
 
     /**
-     * Return a string representation of this <code>SampleAuthPrincipal</code>.
+     * Return a string representation of this <code>ProxToMeIAAuthPrincipal</code>.
      *
      * @return a string representation of this
      *         <code>TestAuthModulePrincipal</code>.
@@ -66,15 +70,15 @@ public class ProxToMeIAAuthPrincipal implements Principal, Serializable {
     }
 
     /**
-     * Compares the specified Object with this <code>SampleAuthPrincipal</code>
+     * Compares the specified Object with this <code>ProxToMeIAAuthPrincipal</code>
      * for equality. Returns true if the given object is also a
-     * <code> SampleAuthPrincipal </code> and the two SampleAuthPrincipal have
+     * <code> ProxToMeIAAuthPrincipal </code> and the two ProxToMeIAAuthPrincipal have
      * the same username.
      *
      * @param o Object to be compared for equality with this
-     *          <code>SampleAuthPrincipal</code>.
+     *          <code>ProxToMeIAAuthPrincipal</code>.
      * @return true if the specified Object is equal equal to this
-     *         <code>SampleAuthPrincipal</code>.
+     *         <code>ProxToMeIAAuthPrincipal</code>.
      */
     @Override
     public boolean equals(Object o) {
@@ -98,9 +102,9 @@ public class ProxToMeIAAuthPrincipal implements Principal, Serializable {
     }
 
     /**
-     * Return a hash code for this <code>SampleAuthPrincipal</code>.
+     * Return a hash code for this <code>ProxToMeIAAuthPrincipal</code>.
      *
-     * @return a hash code for this <code>SampleAuthPrincipal</code>.
+     * @return a hash code for this <code>ProxToMeIAAuthPrincipal</code>.
      */
     @Override
     public int hashCode() {

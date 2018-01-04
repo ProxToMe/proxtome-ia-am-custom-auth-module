@@ -14,6 +14,10 @@
  * Copyright 2017 ForgeRock AS. All Rights Reserved
  */
 
+/**
+ * Portions Copyrighted 2017-2018 ProxToMe inc.
+ */
+
 package com.proxtome.ia.auth;
 
 import org.forgerock.openam.plugins.AmPlugin;
