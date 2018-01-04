@@ -93,7 +93,7 @@ public class ProxToMeIAAuth extends AMLoginModule {
         this.options = options;
         this.sharedState = sharedState;
         this.bundle = amCache.getResBundle(amAuthProxToMeIAAuth, getLoginLocale());
-        this.username = null
+        this.username = null;
     }
 
     @Override
@@ -128,7 +128,7 @@ public class ProxToMeIAAuth extends AMLoginModule {
                 // Delegate a ProxToMeIAHandler instance all the communication to the ProxToMe backend, 
                 // to leave the code clean here.
                 int proxtomeResult = new ProxToMeIAHandler().handleAuthorization(
-                    userID, deviceID, challenge, response, requestBody);
+                    userID, deviceID, challenge, response, body);
                 switch (proxtomeResult) {
                     case ProxToMeIAHandler.PROXTOME_OK:
                         return ISAuthConstants.LOGIN_SUCCEED;

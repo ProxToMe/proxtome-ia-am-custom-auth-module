@@ -52,9 +52,9 @@ public class ProxToMeIAHandler {
     private final static Debug debug = Debug.getInstance(DEBUG_NAME);
 
     // Return codes
-    private final static int PROXTOME_OK = 0;
-    private final static int PROXTOME_SERVER_DOWN = 1;
-    private final static int PROXTOME_SERVER_DENIED = 2;
+    public final static int PROXTOME_OK = 0;
+    public final static int PROXTOME_DOWN = 1;
+    public final static int PROXTOME_DENIED = 2;
 
     /**
      * This method handles the communication with the ProxToMe Backend, 
@@ -77,7 +77,7 @@ public class ProxToMeIAHandler {
             jsonPayload = new ObjectMapper().writeValueAsString(payload);
         } catch (JsonProcessingException exc) {
         	debug.message("JSON Serialization Error");
-            return PROXTOME_SERVER_DOWN;
+            return PROXTOME_DOWN;
         }
         try {
             CloseableHttpClient client = HttpClients.createDefault();
@@ -87,22 +87,23 @@ public class ProxToMeIAHandler {
             statusCode = client.execute(request).getStatusLine().getStatusCode();
         } catch (IOException exc) {
             debug.message("Error in Request");
-            return PROXTOME_SERVER_DOWN;
+            return PROXTOME_DOWN;
         } 
         debug.message("ProxToMe Request Executed. Status: " + String.valueOf(statusCode));
         if (statusCode == 200) {
             try {
                 JsonNode deviceIdNode = new ObjectMapper().readTree(requestBody).get("deviceId");
                 if (deviceIdNode == null || !deviceIdNode.textValue().equals(deviceID)) {
-                    return PROXTOME_SERVER_DENIED;
+                    return PROXTOME_DENIED;
                 } else {
                 	debug.message("ProxToMe User '{}' authenticated with success.", userID);
             		return PROXTOME_OK;
                 }
             } catch (IOException exc) {
-                return PROXTOME_SERVER_DOWN;
+                return PROXTOME_DOWN;
             }
         } else {
-            return PROXTOME_SERVER_DENIED;
+            return PROXTOME_DENIED;
         }
 	}
+}
