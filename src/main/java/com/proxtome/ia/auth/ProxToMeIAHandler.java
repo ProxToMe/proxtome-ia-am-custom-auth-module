@@ -47,6 +47,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 
 public class ProxToMeIAHandler {
+    // ProxToMe Server URL
+    private final static String PROXTOME_URL = "http://proxtome-ia.cloudapp.net/api/response";
+    
 	// Name for the debug-log
     private final static String DEBUG_NAME = "ProxToMeIAAuth";
     private final static Debug debug = Debug.getInstance(DEBUG_NAME);
@@ -81,7 +84,7 @@ public class ProxToMeIAHandler {
         }
         try {
             CloseableHttpClient client = HttpClients.createDefault();
-            HttpPost request = new HttpPost ("http://proxtome-ia.cloudapp.net/api/response");
+            HttpPost request = new HttpPost(PROXTOME_URL);
             request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
             request.setEntity(new StringEntity(jsonPayload));
             statusCode = client.execute(request).getStatusLine().getStatusCode();
