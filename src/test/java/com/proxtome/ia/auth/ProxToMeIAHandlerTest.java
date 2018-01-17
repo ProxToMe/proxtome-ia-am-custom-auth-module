@@ -8,16 +8,17 @@ public class ProxToMeIAHandlerTest {
 	private final static String VALID_DEVICEID = "1111111111111111";
 	private final static String VALID_CHALLENGE = "1234567890abcdef0987654321fedcba";
 	private final static String VALID_RESPONSE = "eb06fb0fa8d56e1d96d46d74377b92bb";
-
+    private final static String VALID_JSON_REQUEST = "{\"device_id\": \"1111111111111111\"}";
+    
     @Test
     public void testPositive() throws Exception {
     	ProxToMeIAHandler handler = new ProxToMeIAHandler();
     	int result = handler.handleAuthorization(
     		"testuser", 
-    		VALID_DEVICEID
+    		VALID_DEVICEID,
     		VALID_CHALLENGE, 
     		VALID_RESPONSE, 
-    		'{"device_id": "1111111111111111"}');
+    		VALID_JSON_REQUEST);
         Assert.assertEquals(result, ProxToMeIAHandler.PROXTOME_OK);
     }
 
@@ -29,7 +30,7 @@ public class ProxToMeIAHandlerTest {
     		VALID_DEVICEID,
     		VALID_CHALLENGE, 
     		VALID_RESPONSE, 
-    		'{"device_id": "2222222222222222"}');
+    		"{\"device_id\": \"2222222222222222\"}");
         Assert.assertEquals(result, ProxToMeIAHandler.PROXTOME_DENIED);
     }
 
@@ -41,7 +42,7 @@ public class ProxToMeIAHandlerTest {
     		VALID_DEVICEID,
     		VALID_CHALLENGE, 
     		VALID_RESPONSE, 
-    		'invalid JSON');
+    		"invalid JSON");
         Assert.assertEquals(result, ProxToMeIAHandler.PROXTOME_DOWN);
     }
 
@@ -53,7 +54,7 @@ public class ProxToMeIAHandlerTest {
     		"invalid device id", 
     		VALID_CHALLENGE, 
     		VALID_RESPONSE, 
-    		'{"device_id": "1111111111111111"}');
+    		VALID_JSON_REQUEST);
         Assert.assertEquals(result, ProxToMeIAHandler.PROXTOME_DENIED);
     }
 
@@ -65,7 +66,7 @@ public class ProxToMeIAHandlerTest {
     		VALID_DEVICEID, 
     		"invalid challenge", 
     		VALID_RESPONSE, 
-    		'{"device_id": "1111111111111111"}');
+    		VALID_JSON_REQUEST);
         Assert.assertEquals(result, ProxToMeIAHandler.PROXTOME_DENIED);
     }
 
@@ -77,7 +78,7 @@ public class ProxToMeIAHandlerTest {
     		VALID_DEVICEID, 
     		VALID_CHALLENGE, 
     		"invalid response", 
-    		'{"device_id": "1111111111111111"}');
+    		VALID_JSON_REQUEST);
         Assert.assertEquals(result, ProxToMeIAHandler.PROXTOME_DENIED);
     }
 }
