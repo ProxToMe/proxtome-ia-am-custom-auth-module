@@ -47,7 +47,7 @@ public class ProxToMeIAHandlerTest {
 		ProxToMeIAHandler handler = new ProxToMeIAHandler();
 		HttpPost request = handler.makeRequest(TEST_USERID, TEST_DEVICEID, TEST_CHALLENGE, TEST_RESPONSE);
 		String payload = request.getEntity().getContent().toString();
-		System.out.print(payload);
+		System.out.print("PAYLOAD - " + payload);
 		JsonNode payloadJson = new ObjectMapper().reader().readTree(payload);
 		Assert.assertEquals(payloadJson.get("p2m_user_id").asText(), TEST_USERID);
 		Assert.assertEquals(payloadJson.get("p2m_device_id").asText(), TEST_DEVICEID);
