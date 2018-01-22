@@ -3,6 +3,7 @@ package com.proxtome.ia.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -57,10 +58,12 @@ public class ProxToMeIAAuthExternalClassIT {
         request.setEntity(new StringEntity(jsonPayload));
         String response = client.execute(request).getEntity().getContent().toString();
         this.userToken =  new ObjectMapper().reader().readTree(response).get("tokenId").asText();
+        System.out.print("Token = " + this.userToken);
     }
 
     @Test
     public void testWorking() throws Exception {
+        System.out.print("Token = " + this.userToken);
         String jsonPayload = "{\"deviceId\": \"" + VALID_DEVICEID + "\", \"callbacks\": " +
                 "[{\"type\": \"NameCallback\", " +
                 "\"input\": [{\"name\": \"IDToken1\", \"value\": \"" + VALID_USERID + "\"]}, " +
@@ -78,7 +81,9 @@ public class ProxToMeIAAuthExternalClassIT {
         );
         request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         request.setEntity(new StringEntity(jsonPayload));
-        int response = client.execute(request).getStatusLine().getStatusCode();
-        Assert.assertEquals(response, 200);
+        HttpResponse response = client.execute(request);
+        int statusCode = response.getStatusLine().getStatusCode();
+        System.out.print(response.getEntity().getContent().toString());
+        Assert.assertEquals(statusCode, 200);
     }
 }

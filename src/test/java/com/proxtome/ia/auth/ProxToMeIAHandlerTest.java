@@ -1,5 +1,6 @@
 package com.proxtome.ia.auth;
 
+import org.apache.http.util.EntityUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.apache.http.Header;
@@ -46,8 +47,7 @@ public class ProxToMeIAHandlerTest {
 	public void testRequestParameters() throws Exception {
 		ProxToMeIAHandler handler = new ProxToMeIAHandler();
 		HttpPost request = handler.makeRequest(TEST_USERID, TEST_DEVICEID, TEST_CHALLENGE, TEST_RESPONSE);
-		String payload = request.getEntity().getContent().toString();
-		System.out.print("PAYLOAD - " + payload);
+		String payload = EntityUtils.toString(request.getEntity());
 		JsonNode payloadJson = new ObjectMapper().reader().readTree(payload);
 		Assert.assertEquals(payloadJson.get("p2m_user_id").asText(), TEST_USERID);
 		Assert.assertEquals(payloadJson.get("p2m_device_id").asText(), TEST_DEVICEID);
