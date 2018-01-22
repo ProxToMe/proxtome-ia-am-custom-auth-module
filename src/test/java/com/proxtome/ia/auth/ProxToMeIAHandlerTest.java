@@ -17,7 +17,7 @@ public class ProxToMeIAHandlerTest {
 	private final static String TEST_DEVICEID = "1111111111111111";
 	private final static String TEST_CHALLENGE = "testchallenge";
 	private final static String TEST_RESPONSE = "testresponse";
-	private final static String VALID_JSON_REQUEST = "{\"device_id\": \"1111111111111111\"}";
+	private final static String VALID_JSON_REQUEST = "{\"deviceId\": \"1111111111111111\"}";
 
 	@Test
 	public void testRequestURL() throws Exception {
@@ -47,6 +47,7 @@ public class ProxToMeIAHandlerTest {
 		ProxToMeIAHandler handler = new ProxToMeIAHandler();
 		HttpPost request = handler.makeRequest(TEST_USERID, TEST_DEVICEID, TEST_CHALLENGE, TEST_RESPONSE);
 		String payload = request.getEntity().getContent().toString();
+		System.out.print(payload);
 		JsonNode payloadJson = new ObjectMapper().reader().readTree(payload);
 		Assert.assertEquals(payloadJson.get("p2m_user_id").asText(), TEST_USERID);
 		Assert.assertEquals(payloadJson.get("p2m_device_id").asText(), TEST_DEVICEID);
