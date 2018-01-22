@@ -1,63 +1,84 @@
 package com.proxtome.ia.auth;
 
-// import org.springframework.http.*;
-// import org.springframework.web.client.HttpClientErrorException;
-// import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpHeaders;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.testng.Assert;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
+
 public class ProxToMeIAAuthExternalClassIT {
+    private static final String AM_AUTHENTICATE_ENDPOINT = "http://proxtome-am.cloudapp.net:8080/openam/json/authenticate";
+    private String userToken = null;
+    private final static String VALID_USERID = "testuser";
+    private final static String VALID_DEVICEID = "1111111111111111";
+    private final static String VALID_CHALLENGE = "1234567890abcdef0987654321fedcba";
+    private final static String VALID_RESPONSE = "eb06fb0fa8d56e1d96d46d74377b92bb";
 
-    public static final String AM_AUTHENTICATE_ENDPOINT = "http://openam.example.com:8080/openam/json/authenticate";
-
-    @Test
-    public void testGetToken() throws Exception {
-        // RestTemplate restTemplate = new RestTemplate();
-        // HttpHeaders httpHeaders = new HttpHeaders();
-        // httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-
-        // //Get Initial Auth ID
-        // ResponseEntity<SampleAuthCallback> entity = restTemplate.exchange(AM_AUTHENTICATE_ENDPOINT,
-        //         HttpMethod.POST, new HttpEntity<>(httpHeaders), ProxToMeIAAuthCallback.class);
-        // ProxToMeIAAuthCallback callback = entity.getBody();
-
-        // //Set correct username and password
-        // callback.setCredentials("testdevice", "1111111111111111", "<challenge>", "<response>");
-
-        // //Authenticate to OpenAM
-        // ResponseEntity<String> tokenEntity = restTemplate.exchange(AM_AUTHENTICATE_ENDPOINT,
-        //         HttpMethod.POST, new HttpEntity<>(callback, httpHeaders), String.class);
-
-        // //Assert response is 200 and print token
-        // Assert.assertEquals(tokenEntity.getStatusCode(), HttpStatus.OK);
-        // System.out.println(tokenEntity.getBody());
+    @BeforeSuite
+    public void getAuthToken() throws Exception {
+//        Map<String, String> nameCallbackInput = new HashMap<String, String>();
+//        nameCallbackInput.put("name", "IDToken1");
+//        nameCallbackInput.put("value", "demo");
+//        Map<String, Object> nameCallback = new HashMap<String, Object>();
+//        nameCallback.put("type", "NameCallback");
+//        List<Object> nameCallbackInputs = new ArrayList<Object>();
+//        nameCallbackInputs.add(nameCallbackInput);
+//        nameCallback.put("input", nameCallbackInputs);
+//
+//        Map<String, String> passwordCallbackInput = new HashMap<String, String>();
+//        passwordCallbackInput.put("name", "IDToken2");
+//        passwordCallbackInput.put("value", "changeit");
+//        Map<String, Object> passwordCallback = new HashMap<String, Object>();
+//        passwordCallback.put("type", "PasswordCallback");
+//        List<Object> passwordCallbackInputs = new ArrayList<Object>();
+//        passwordCallbackInputs.add(passwordCallbackInput);
+//        passwordCallback.put("input", passwordCallbackInputs);
+//
+//        Map<String, Object> payload = new HashMap<String, Object>();
+//        List<Object> callbacks = new ArrayList<Object>();
+//        callbacks.add(nameCallback);
+//        callbacks.add(passwordCallback);
+//        payload.put("callbacks", callbacks);
+//        String jsonPayload = new ObjectMapper().writeValueAsString(payload);
+        String jsonPayload = "{\"callbacks\": " +
+                "[{\"type\": \"NameCallback\", " +
+                "\"input\": [{\"name\": \"IDToken1\", \"value\": \"demo\"]}, " +
+                "{\"type\": \"PasswordCallback\", " +
+                "\"input\": [{\"name\": \"IDToken2\", \"value\":\"changeit\"]}]}";
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpPost request = new HttpPost(AM_AUTHENTICATE_ENDPOINT);
+        request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        request.setEntity(new StringEntity(jsonPayload));
+        String response = client.execute(request).getEntity().getContent().toString();
+        this.userToken =  new ObjectMapper().reader().readTree(response).get("tokenId").asText();
     }
 
     @Test
-    public void testFailGetToken() throws Exception {
-        // RestTemplate restTemplate = new RestTemplate();
-        // HttpHeaders httpHeaders = new HttpHeaders();
-        // httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-
-        // //Get Initial Auth ID
-        // ResponseEntity<SampleAuthCallback> entity = restTemplate.exchange(AM_AUTHENTICATE_ENDPOINT,
-        //         HttpMethod.POST, new HttpEntity<>(httpHeaders), ProxToMeIAAuthCallback.class);
-        // ProxToMeIAAuthCallback callback = entity.getBody();
-
-        // //Set incorrect username and password
-        // callback.setCredentials("testdevice", "1111111111111111", "wrongchallenge", "wrongresponse");
-
-        // //Authenticate to OpenAM
-        // try {
-        //     restTemplate.exchange(AM_AUTHENTICATE_ENDPOINT,
-        //             HttpMethod.POST, new HttpEntity<>(callback, httpHeaders), String.class);
-        // } catch (HttpClientErrorException e) {
-        //     //Assert response is 401
-        //     Assert.assertEquals(e.getStatusCode(), HttpStatus.UNAUTHORIZED);
-        //     return;
-
-        // }
-        // // Fail if 401 isn't received
-        // Assert.fail();
+    public void testWorking() throws Exception {
+        String jsonPayload = "{\"deviceId\": \"" + VALID_DEVICEID + "\", \"callbacks\": " +
+                "[{\"type\": \"NameCallback\", " +
+                "\"input\": [{\"name\": \"IDToken1\", \"value\": \"" + VALID_USERID + "\"]}, " +
+                "{\"type\": \"NameCallback\", " +
+                "\"input\": [{\"name\": \"IDToken2\", \"value\": \"" + VALID_DEVICEID + "\"]}, " +
+                "{\"type\": \"PasswordCallback\", " +
+                "\"input\": [{\"name\": \"IDToken3\", \"value\": \"" + VALID_CHALLENGE + "\"]}, " +
+                "{\"type\": \"PasswordCallback\", " +
+                "\"input\": [{\"name\": \"IDToken4\", \"value\":\"" + VALID_RESPONSE + "\"]}]}";
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpPost request = new HttpPost(AM_AUTHENTICATE_ENDPOINT +
+                "?authIndexType=module" +
+                "&authIndexValue=ProxToMe" +
+                "&sessionUpgradeSSOTokenId=" + this.userToken
+        );
+        request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        request.setEntity(new StringEntity(jsonPayload));
+        int response = client.execute(request).getStatusLine().getStatusCode();
+        Assert.assertEquals(response, 200);
     }
 }
