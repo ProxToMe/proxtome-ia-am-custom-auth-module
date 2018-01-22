@@ -48,20 +48,22 @@ public class ProxToMeIAAuthExternalClassIT {
 //        callbacks.add(passwordCallback);
 //        payload.put("callbacks", callbacks);
 //        String jsonPayload = new ObjectMapper().writeValueAsString(payload);
-        String jsonPayload = "{\"callbacks\": " +
-                "[{\"type\": \"NameCallback\", " +
-                "\"input\": [{\"name\": \"IDToken1\", \"value\": \"demo\"]}, " +
-                "{\"type\": \"PasswordCallback\", " +
-                "\"input\": [{\"name\": \"IDToken2\", \"value\":\"changeit\"]}]}";
+//        String jsonPayload = "{\"callbacks\": " +
+//                "[{\"type\": \"NameCallback\", " +
+//                "\"input\": [{\"name\": \"IDToken1\", \"value\": \"demo\"]}, " +
+//                "{\"type\": \"PasswordCallback\", " +
+//                "\"input\": [{\"name\": \"IDToken2\", \"value\":\"changeit\"]}]}";
         CloseableHttpClient client = HttpClients.createDefault();
         HttpPost request = new HttpPost(AM_AUTHENTICATE_ENDPOINT);
         request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-        request.setEntity(new StringEntity(jsonPayload));
+        request.setHeader("X-OpenAM-Username", "demo");
+        request.setHeader("X-OpenAM-Password", "changeit");
+//        request.setEntity(new StringEntity(jsonPayload));
         HttpResponse response = client.execute(request);
         int statusCode = response.getStatusLine().getStatusCode();
-        Assert.assertEquals(statusCode, 200);
         String jsonResponse = EntityUtils.toString(response.getEntity());
         System.out.println(jsonResponse);
+        Assert.assertEquals(statusCode, 200);
         this.userToken = new ObjectMapper().reader().readTree(jsonResponse).get("tokenId").asText();
         System.out.println("Token = " + this.userToken);
     }
