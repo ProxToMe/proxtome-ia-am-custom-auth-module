@@ -57,9 +57,13 @@ public class ProxToMeIAAuthExternalClassIT {
         HttpPost request = new HttpPost(AM_AUTHENTICATE_ENDPOINT);
         request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         request.setEntity(new StringEntity(jsonPayload));
-        String response = EntityUtils.toString(client.execute(request).getEntity());
-        this.userToken =  new ObjectMapper().reader().readTree(response).get("tokenId").asText();
-        System.out.print("Token = " + this.userToken);
+        HttpResponse response = client.execute(request);
+        int statusCode = response.getStatusLine().getStatusCode();
+        Assert.assertEquals(statusCode, 200);
+        String jsonResponse = EntityUtils.toString(response.getEntity());
+        System.out.println(jsonResponse);
+        this.userToken = new ObjectMapper().reader().readTree(jsonResponse).get("tokenId").asText();
+        System.out.println("Token = " + this.userToken);
     }
 
     @Test
@@ -84,7 +88,7 @@ public class ProxToMeIAAuthExternalClassIT {
         request.setEntity(new StringEntity(jsonPayload));
         HttpResponse response = client.execute(request);
         int statusCode = response.getStatusLine().getStatusCode();
-        System.out.print(EntityUtils.toString(response.getEntity()));
+        System.out.println(EntityUtils.toString(response.getEntity()));
         Assert.assertEquals(statusCode, 200);
     }
 }
