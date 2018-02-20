@@ -29,9 +29,9 @@ Once you have your **AM** instance set up, follow this steps:
 1. Download the archive at [$archive_url](https://archive.url).
 2. Extract the archive on your Server.
 3. Copy the **proxtome-ia-auth-module-*.jar** file to WEB-INF/lib/ where AM is deployed.
-    ```
-    $ cp proxtome-ia-auth-module-*.jar /path/to/tomcat/webapps/openam/WEB-INF/lib/
-    ```
+```
+$ cp proxtome-ia-auth-module-*.jar /path/to/tomcat/webapps/openam/WEB-INF/lib/
+```
 4. Restart AM or the container in which it runs.
 5. Log in to the AM console as an administrator, such as `amadmin`, and browse to `Realms > Top Level Realm > Authentication > Modules`. Click Add Module to create an instance of the **PICAM**. Name the module `ProxToMe`.
 6. Click `Create`, and then configure the authentication module as appropriate. Click on `Save Changes`.
@@ -135,20 +135,20 @@ Since Apple doesn’t allow the application with unused architectures to the App
 3. Name the Script as `Remove Unused Architectures Script`.
 4. This script should always be placed below the **Embed Frameworks** phase.
 5. Type this in the **Custom Run Scripts**:
-    ```
-    FRAMEWORK="ProxToMeIA"
-    FRAMEWORK_EXECUTABLE_PATH="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/$FRAMEWORK.framework/$FRAMEWORK"
-    EXTRACTED_ARCHS=()
-    for ARCH in $ARCHS
-    do
-    lipo -extract "$ARCH" "$FRAMEWORK_EXECUTABLE_PATH" -o "$FRAMEWORK_EXECUTABLE_PATH-$ARCH"
-    EXTRACTED_ARCHS+=("$FRAMEWORK_EXECUTABLE_PATH-$ARCH")
-    done
-    lipo -o "$FRAMEWORK_EXECUTABLE_PATH-merged" -create "${EXTRACTED_ARCHS[@]}"
-    rm "${EXTRACTED_ARCHS[@]}"
-    rm "$FRAMEWORK_EXECUTABLE_PATH"
-    mv "$FRAMEWORK_EXECUTABLE_PATH-merged" "$FRAMEWORK_EXECUTABLE_PATH"
-    ```
+```
+FRAMEWORK="ProxToMeIA"
+FRAMEWORK_EXECUTABLE_PATH="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/$FRAMEWORK.framework/$FRAMEWORK"
+EXTRACTED_ARCHS=()
+for ARCH in $ARCHS
+do
+lipo -extract "$ARCH" "$FRAMEWORK_EXECUTABLE_PATH" -o "$FRAMEWORK_EXECUTABLE_PATH-$ARCH"
+EXTRACTED_ARCHS+=("$FRAMEWORK_EXECUTABLE_PATH-$ARCH")
+done
+lipo -o "$FRAMEWORK_EXECUTABLE_PATH-merged" -create "${EXTRACTED_ARCHS[@]}"
+rm "${EXTRACTED_ARCHS[@]}"
+rm "$FRAMEWORK_EXECUTABLE_PATH"
+mv "$FRAMEWORK_EXECUTABLE_PATH-merged" "$FRAMEWORK_EXECUTABLE_PATH"
+```
 This run script removes the unused architectures only while pushing the Application to the App Store.
 
 
