@@ -125,10 +125,38 @@ You can use the `stop` method to stop the scan for nearby **Dongles**.
 After you receive a valid `name` and `tokenId` in the `callback` function, you can use the `tokenId` to access the Resource with name `name` at the URL specified in the `options`.
 To do that, you will need to set the `iPlanetDirectoryPro` header in your request to the received `tokenId`.
 
+### Production build
+
+The **Mobile SDK** is provided as a *Universal* framework, which means that the same `ProxToMeIA.framework` file will build both on Simulators and real iOS Devices.
+Since Apple doesn’t allow the application with unused architectures to the App Store, you need to follow this steps to build your app in production with the provided **Mobile SDK**.
+
+1. Select the Project, Choose `Target > Project Name > Select Build Phases`.
+2. Press `+` and then `New Run Script Phase`.
+3. Name the Script as `Remove Unused Architectures Script`.
+4. This script should always be placed below the **Embed Frameworks** phase.
+5. Type this in the **Custom Run Scripts**:
+    ```
+    FRAMEWORK="ProxToMeIA"
+    FRAMEWORK_EXECUTABLE_PATH="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/$FRAMEWORK.framework/$FRAMEWORK"
+    EXTRACTED_ARCHS=()
+    for ARCH in $ARCHS
+    do
+    lipo -extract "$ARCH" "$FRAMEWORK_EXECUTABLE_PATH" -o "$FRAMEWORK_EXECUTABLE_PATH-$ARCH"
+    EXTRACTED_ARCHS+=("$FRAMEWORK_EXECUTABLE_PATH-$ARCH")
+    done
+    lipo -o "$FRAMEWORK_EXECUTABLE_PATH-merged" -create "${EXTRACTED_ARCHS[@]}"
+    rm "${EXTRACTED_ARCHS[@]}"
+    rm "$FRAMEWORK_EXECUTABLE_PATH"
+    mv "$FRAMEWORK_EXECUTABLE_PATH-merged" "$FRAMEWORK_EXECUTABLE_PATH"
+    ```
+This run script removes the unused architectures only while pushing the Application to the App Store.
+
+
 ### Example app
 
 In the **Mobile SDK** archive, you will find an example app in the directory **Example**.
 The app implements the functions described above with a demo AM deployment and an example **Resource** URL protected by it.
+
 
 * * *
 
