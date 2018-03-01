@@ -83,7 +83,7 @@ import ProxToMeIA
 ```
 You will then need to perform an Authentication process on your AM deployment to obtain a valid `authID`.
 Then you have to initialize a `ProxToMe` object with an `options: [ProxToMeOptionsKey: Any]` dictionary.
-The `options` dictionary shall always contain the four keys:
+The `options` dictionary shall always contain the three keys:
 ```
 {
     ProxToMeOptionsKey.rssiTrigger: Decimal  // Contains the RSSI trigger for proximity to a Dongle. It should be in the range [0, -127]. Defaults to -62.
@@ -91,7 +91,7 @@ The `options` dictionary shall always contain the four keys:
     ProxToMeOptionsKey.authID: String  // Contains the auth ID received from AM after the authentication.
 }
 ```
-Usually, you will only need to set the `.baseURL`, `.authID` and `.resourceURL` keys.
+Usually, you will only need to set the `.baseURL`, `.authID` keys.
 For example:
 ```
 let options: [ProxToMeOptionsKey: Any] = [
