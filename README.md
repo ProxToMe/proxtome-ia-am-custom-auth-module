@@ -89,7 +89,6 @@ The `options` dictionary shall always contain the four keys:
     ProxToMeOptionsKey.rssiTrigger: Decimal  // Contains the RSSI trigger for proximity to a Dongle. It should be in the range [0, -127]. Defaults to -62.
     ProxToMeOptionsKey.baseURL: String  // Contains the base URL of the AM Server to use.
     ProxToMeOptionsKey.authID: String  // Contains the auth ID received from AM after the authentication.
-    ProxToMeOptionsKey.resourceURL: String  // Contains the Resource URL to require access to.
 }
 ```
 Usually, you will only need to set the `.baseURL`, `.authID` and `.resourceURL` keys.
@@ -97,9 +96,8 @@ For example:
 ```
 let options: [ProxToMeOptionsKey: Any] = [
     .rssiTrigger: ProxToMe.defaultOptions[.rssiTrigger],
-    .baseURL: "http://proxtome-am.cloudapp.net:8080/",
+    .baseURL: "<...AM Base URL...>",
     .authID: "<...AM Auth ID...>",
-    .resourceURL: "http://resource.com/device/{0}",
 ]
 let proxtome = ProxToMe(options: options)  // ProxToMe Object initialization
 ```
@@ -107,20 +105,34 @@ will be a valid configuration, where:
 - The `.rssiTrigger` value stays at `-62` as in the default configuration,
 - The `.baseURL` value will be the URL of the example ProxToMe AM deployment,
 - The `.authID` value is set with a dummy value,
-- The `.resourceURL` value is set as `http://resource.com/device/{0}`. The `{0}` will be replaced with the Device Identifier returned by the **ProxToMe Service** when the proximity with the **Dongle** is confirmed.
-You can omit the `{0}` and provide a valid URL if you don't need that parameter in the Resource URL you are protecting.
 
 You will then need to start the scan for nearby **Dongles** by calling the `start` method on the `ProxToMe` object.
 ```
-proxtome.start(callback: callback(name:tokenId:error:))
+proxtome.startScan(callback: callback(name:error:))
 ```
-The `start` method takes a callback as parameter, that gets called when a proximity event with a **Dongle** is generated and verified by AM to authorize access to the **Resource** you requested.
-The `callback` gets called with three parameters:
+The `startScan` method takes a `callback` as parameter, that gets called when a proximity event with a **Dongle** happens.
+
+The `callback` gets called with two parameters:
 - `name: String?`, containing the nearby **Dongle** name, or `nil` if there was an error.
+- `error: ProxToMeError?`, containing the error description in case of error, or `nil`.
+
+When the `callback` method is called, you can ask the **Mobile SDK** to verify the proximity event and send it to AM to authorize access to a **Resource**.
+To do this, you will need to call the method `checkProximity`.
+```
+proxtome.checkProximity(resourceURL: "https://my.resource.com/\(deviceId)", callback: callback(tokenId:error:))
+```
+The `checkProximity` method takes two parameters:
+- `resourceURL: String`, containing the URL of the **Resource** to access.
+- a `callback` that will be called when the proximity event is verified, and AM authorizes you to access the **Resource**.
+
+The `callback` gets called with two parameters:
 - `tokenId: String?`, containing the **tokenId** authorized by AM to access the Resource, or `nil` if there was an error.
-- `error: ProxToMeError`, containing the error description in case of error, or `nil`.
+- `error: ProxToMeError?`, containing the error description in case of error, or `nil`.
 
 You can use the `stop` method to stop the scan for nearby **Dongles**.
+```
+proxtome.stop()
+```
 
 After you receive a valid `name` and `tokenId` in the `callback` function, you can use the `tokenId` to access the Resource with name `name` at the URL specified in the `options`.
 To do that, you will need to set the `iPlanetDirectoryPro` header in your request to the received `tokenId`.
