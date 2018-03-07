@@ -26,8 +26,8 @@ Follow the instructions here: [AM 5.5 Installation Guide](https://backstage.forg
 
 Once you have your **AM** instance set up, follow this steps:
 
-1. Download the archive at [$archive_url](https://archive.url).
-2. Extract the archive on your Server.
+1. Download the **.jar** file archive [here](https://github.com/ProxToMe/proxtome-ia-am-custom-auth-module/blob/master/dist/proxtome-ia-auth-module-1.0.jar).
+2. Copy the **.jar** on your Server.
 3. Copy the **proxtome-ia-auth-module-*.jar** file to WEB-INF/lib/ where AM is deployed.
 ```
 $ cp proxtome-ia-auth-module-*.jar /path/to/tomcat/webapps/openam/WEB-INF/lib/
@@ -65,7 +65,7 @@ Now the **PICAM** is configured, and you can test it by using the **Example App*
 ### Installation
 
 To install the **Mobile SDK** in your app, you will need to follow this steps:
-1. Download the archive at [$ios_archive_url](https://ios.archive.url).
+1. Download the **Mobile SDK** archive [here](https://github.com/ProxToMe/proxtome-ia-am-custom-auth-module/releases/download/v1.0/mobile-sdk-ios-1.0.zip).
 2. Extract the archive on the development machine.
 3. Open your app project in XCode.
 4. Follow the instructions [here](https://github.com/Alamofire/Alamofire#installation) to install the **Alamofire** library in your app.
